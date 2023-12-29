@@ -84,12 +84,11 @@ void daisy595::SetDigitsToHoursMinutes(time_t t)
 {
     uint8_t ho = hour(t);
     if (ho < 10)
-        SetDigit(TEN_HOUR_DIGIT, numLookup[0]);
+        SetDigit(TEN_HOUR_DIGIT, blankLookup[0]);
     else
         SetDigit(TEN_HOUR_DIGIT, numLookup[ho / 10]);
 
     SetDigit(HOUR_DIGIT, numLookup[ho % 10]);
-    // SetDigit(HOUR_DIGIT, second(t) % 2 == 0 ? numLookup[ho % 10] & 0b01111111 : numLookup[ho % 10]);
 
     uint8_t min = minute(t);
     if (min < 10)
@@ -104,7 +103,7 @@ void daisy595::SetDigitsToMinutesSeconds(time_t t)
 {
     uint8_t min = minute(t);
     if (min < 10)
-        SetDigit(3, numLookup[0]);
+        SetDigit(3, blankLookup[0]);
     else
         SetDigit(3, numLookup[min / 10]);
 

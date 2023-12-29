@@ -7,11 +7,11 @@
 #include "ntp.h"
 #include "common.h"
 
-#define NTP_UPDATE_INTERVAL_MS 360000 //  synchronize time with NTP server once an hour
+#define NTP_UPDATE_INTERVAL_MS (unsigned long)3600000 //  synchronize time with NTP server once an hour
 
 WiFiUDP ntpUDP;
 
-#ifdef __debugNTP
+#if __localNTP == 1
 char timeServer[] = "192.168.123.2";
 #else
 char timeServer[] = "europe.pool.ntp.org";

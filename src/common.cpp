@@ -5,16 +5,6 @@
 #include "common.h"
 #include "timechangerules.h"
 
-//   !  For "strftime" to work delete Time.h file in TimeLib library  !!!
-char *GetFullDateTime(const char *formattingString, size_t size)
-{
-    time_t localTime = timechangerules::timezones[appSettings.timeZone]->toLocal(now(), &tcr);
-    struct tm *now = localtime(&localTime);
-    char *buf = new char[20];
-    strftime(buf, 20, formattingString, now);
-    return buf;
-}
-
 String DateTimeToString(const time_t time)
 {
 

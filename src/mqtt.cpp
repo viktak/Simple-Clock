@@ -7,9 +7,6 @@
 #include "version.h"
 #include "common.h"
 
-#define MQTT_CUSTOMER "viktak"
-#define MQTT_PROJECT "spiti"
-
 bool needsHeartbeat = false;
 os_timer_t heartbeatTimer;
 
@@ -68,9 +65,13 @@ void SendHeartbeat()
     JsonObject sysDetails = doc.createNestedObject("System");
     sysDetails["ChipID"] = (String)ESP.getChipId();
 
-    sysDetails["Time"] = GetFullDateTime("%F %T", size_t(20));
+    TimeChangeRule *tcr;
+    time_t localTime = timechangerules::timezones[appSettings.timeZone]->toLocal(now(), &tcr);
+    sysDetails["Time"] = DateTimeToString(localTime);
+
     sysDetails["Node"] = appSettings.localHost;
     sysDetails["Freeheap"] = ESP.getFreeHeap();
+    sysDetails["clockMode"] = appSettings.clockMode;
 
     sysDetails["HardwareID"] = HARDWARE_ID;
     sysDetails["HardwareVersion"] = HARDWARE_VERSION;
@@ -89,7 +90,7 @@ void SendHeartbeat()
     mqttDetails["MQTT_TOPIC"] = appSettings.mqttTopic;
 
     JsonObject wifiDetails = doc.createNestedObject("WiFi");
-    wifiDetails["APP_NAME"] = appSettings.localHost;
+    wifiDetails["AP_NAME"] = appSettings.localHost;
     wifiDetails["SSID"] = appSettings.wifiSSID;
     wifiDetails["Channel"] = WiFi.channel();
     wifiDetails["IP_Address"] = WiFi.localIP().toString();

@@ -61,7 +61,6 @@ void loopConnection()
             IPAddress myIP = WiFi.softAPIP();
             isAccessPointCreated = true;
 
-            // InitWifiWebServer();
             InitAsyncWebServer();
 
             Serial.println("Access point created. Use the following information to connect to the ESP device, then follow the on-screen instructions to connect to a different wifi network:");
@@ -195,10 +194,22 @@ void loopConnection()
 
             if (millis() - timeMillis > 1000)
             {
+                TimeChangeRule *tcr;
                 time_t localTime = timechangerules::timezones[appSettings.timeZone]->toLocal(now(), &tcr);
                 if (oldSec != second(localTime))
                 {
-                    disp.SetDigitsToHoursMinutes(localTime);
+                    switch (appSettings.clockMode)
+                    {
+                    case 0:
+                        disp.SetDigitsToHoursMinutes(localTime);
+                        break;
+                    case 1:
+                        disp.SetDigitsToMinutesSeconds(localTime);
+                        break;
+
+                    default:
+                        break;
+                    }
                     disp.RefreshDisplay();
                     oldSec = second(localTime);
                 }

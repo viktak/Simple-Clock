@@ -20,10 +20,10 @@ const char *ADMIN_PASSWORD = "admin";
 
 AsyncWebServer server(80);
 
-TimeChangeRule *tcr;
-
 size_t updateSize = 0;
 bool shouldReboot = false;
+unsigned long ota_progress_millis = 0;
+size_t lastCurrent = 0;
 
 //  Helper functions - not used in production
 void PrintParameters(AsyncWebServerRequest *request)
@@ -76,6 +76,7 @@ String StatusTemplateProcessor(const String &var)
         return timechangerules::tzDescriptions[appSettings.timeZone];
     if (var == "currenttime")
     {
+        TimeChangeRule *tcr;
         time_t localTime = timechangerules::timezones[appSettings.timeZone]->toLocal(now(), &tcr);
         return DateTimeToString(localTime);
     }
@@ -240,6 +241,34 @@ void POSTGeneralSettings(AsyncWebServerRequest *request)
     appSettings.Save();
 }
 
+//  Clock
+String ClockSettingsTemplateProcessor(const String &var)
+{
+    if (var == "optDisplayHoursAndMinutesCheck")
+        return appSettings.clockMode == 0 ? "checked" : "";
+
+    if (var == "optDisplayMinutesAndSecondsCheck")
+        return appSettings.clockMode == 1 ? "checked" : "";
+
+    SerialMon.println(var);
+
+    return String();
+}
+
+void POSTClockSettings(AsyncWebServerRequest *request)
+{
+    AsyncWebParameter *p;
+
+    PrintParameters(request);
+
+    if (request->hasParam("optClockType", true))
+    {
+        p = request->getParam("optClockType", true);
+        appSettings.clockMode = atoi(p->value().c_str());
+    }
+    appSettings.Save();
+}
+
 //  Network
 String NetworkSettingsTemplateProcessor(const String &var)
 {
@@ -316,6 +345,36 @@ String ToolsTemplateProcessor(const String &var)
     return String();
 }
 
+//  OTA
+void onOTAStart()
+{
+    Serial.println("OTA update started!");
+}
+
+void onOTAProgress(size_t current, size_t final)
+{
+    if (millis() - ota_progress_millis > 500)
+    {
+        Serial.printf("OTA: %3.0f%%\tTransfered %7u of %7u bytes\tSpeed: %4.3fkB/s\r", ((float)current / (float) final) * 100, current, final, ((float)(current - lastCurrent)) / 1024 / 10);
+        lastCurrent = current;
+        ota_progress_millis = millis();
+    }
+}
+
+void onOTAEnd(bool success)
+{
+    Serial.println("\rOTA: 100%\r\n"); //  Overwrite the progress value
+
+    if (success)
+    {
+        Serial.println("OTA update finished successfully! Restarting...");
+    }
+    else
+    {
+        Serial.println("\r\nThere was an error during OTA update!");
+    }
+}
+
 /// Init
 void InitAsyncWebServer()
 {
@@ -358,12 +417,23 @@ void InitAsyncWebServer()
 
     server.on("/general-settings.html", HTTP_POST, [](AsyncWebServerRequest *request)
               {
-                  PrintParameters(request);
                   POSTGeneralSettings(request);
 
                   ESP.restart();
 
                   request->redirect("/general-settings.html"); });
+
+    //  Clock
+    server.on("/clock-settings.html", HTTP_GET, [](AsyncWebServerRequest *request)
+              {
+                if(!request->authenticate(ADMIN_USERNAME, ADMIN_PASSWORD))
+                    return request->requestAuthentication();
+                request->send(LittleFS, "/clock-settings.html", String(), false, ClockSettingsTemplateProcessor); });
+
+    server.on("/clock-settings.html", HTTP_POST, [](AsyncWebServerRequest *request)
+              {
+                  POSTClockSettings(request);
+                  request->redirect("/clock-settings.html"); });
 
     //  Network
     server.on("/network-settings.html", HTTP_GET, [](AsyncWebServerRequest *request)
@@ -403,8 +473,11 @@ void InitAsyncWebServer()
                     ESP.restart(); });
 
     //  OTA
-    ElegantOTA.begin(&server, ADMIN_USERNAME, ADMIN_PASSWORD);
     ElegantOTA.setAutoReboot(true);
+    ElegantOTA.begin(&server, ADMIN_USERNAME, ADMIN_PASSWORD);
+    ElegantOTA.onStart(onOTAStart);
+    ElegantOTA.onProgress(onOTAProgress);
+    ElegantOTA.onEnd(onOTAEnd);
 
     server.begin();
     SerialMon.println("AsyncWebServer started.");

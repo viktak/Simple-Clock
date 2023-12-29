@@ -22,6 +22,7 @@
 
 #define DEFAULT_MQTT_PORT 1883
 #define DEFAULT_MQTT_TOPIC "vNode"
+#define DEFAULT_CLOCK_MODE 0
 
 class settings
 {
@@ -42,6 +43,8 @@ public:
     char mqttServer[64];
     int mqttPort;
     char mqttTopic[32];
+
+    int clockMode;
 
     //  Calculated values
     char localHost[32];

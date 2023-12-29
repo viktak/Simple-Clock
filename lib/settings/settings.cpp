@@ -120,6 +120,11 @@ bool settings::Load()
         heartbeatInterval = doc["heartbeatInterval"];
     }
 
+    if (doc["clockMode"])
+    {
+        clockMode = doc["clockMode"];
+    }
+
     if (strcmp(localHost, mqttTopic) != 0)
     {
         char mac[7];
@@ -176,6 +181,7 @@ bool settings::Save()
     doc["mqttTopic"] = mqttTopic;
 
     doc["friendlyName"] = nodeFriendlyName;
+    doc["clockMode"] = clockMode;
 
 #ifdef __debugSettings
     serializeJsonPretty(doc, Serial);
@@ -209,6 +215,8 @@ void settings::LoadDefaults()
     strcpy(nodeFriendlyName, DEFAULT_NODE_FRIENDLY_NAME);
     heartbeatInterval = DEFAULT_HEARTBEAT_INTERVAL;
     timeZone = DEFAULT_TIMEZONE;
+
+    clockMode = DEFAULT_CLOCK_MODE;
 
     if (!Save())
     {

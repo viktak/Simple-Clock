@@ -18,7 +18,6 @@
 
 <body>
     <div class="container-fluid">
-
         <nav class="navbar navbar-expand-lg bg-light">
             <div class="container-fluid">
                 <button class="navbar-toggler custom-toggler" type="button" data-bs-toggle="collapse"
@@ -33,7 +32,7 @@
                             <a class="nav-link" href="/general-settings.html">General</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="/clock-settings.html">Clock</a>
+                            <a class="nav-link active" href="/clock-settings.html">Clock</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="/network-settings.html">Network</a>
@@ -48,17 +47,30 @@
                 </div>
             </div>
         </nav>
-
         <div class="mt-6 p-3 bg-primary text-white rounded">
             <h1>Ksipna</h1>
-            <h2>Something went wrong...</h2>
+            <h2>Clock Settings</h2>
         </div>
         <br />
+        <form class="form-horizontal form-check" method="post">
+            <div class="form-check">
+                <label class="form-check-label" for="optDisplayHoursAndMinutes"><input type="radio"
+                        class="form-check-input" id="optDisplayHoursAndMinutes" name="optClockType" value="0" %optDisplayHoursAndMinutesCheck%>Display
+                    hours and minutes (default)
+                </label>
+            </div>
+            <div class="form-check">
+                <label class="form-check-label" for="optDisplayMinutesAndSeconds"><input type="radio"
+                        class="form-check-input" id="optDisplayMinutesAndSeconds" name="optClockType" value="1" %optDisplayMinutesAndSecondsCheck%>Display
+                    minutes and seconds
+                </label>
+            </div>
 
-        <div class="panel panel-default">
-            <div class="panel-body">There was an error processing your request.</div>
-        </div>
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <input type='submit' class='btn btn-success' value='Save'>
+            </div>
 
+        </form>
         <small class='well well-sm'>
             (c)2023 Viktor Takacs - <a href='https://diy.viktak.com' target='_blank'>diy.viktak.com</a>
         </small>
